@@ -1,9 +1,16 @@
 <?php
+header("Access-Control-Allow-Origin: *");
+header('Content-Type: application/json; charset=utf-8');
+
+// 動態接收出發地與目的地機場三字碼，預設台北(TPE)到東京(NRT)
+$from = isset($_GET['from']) ? $_GET['from'] : 'TPE.AIRPORT';
+$to = isset($_GET['to']) ? $_GET['to'] : 'NRT.AIRPORT';
 
 $curl = curl_init();
 
 curl_setopt_array($curl, [
-	CURLOPT_URL => "https://booking-com15.p.rapidapi.com/api/v1/flights/searchFlights?fromId=BOM.AIRPORT&toId=DEL.AIRPORT&stops=none&pageNo=1&adults=1&children=0%2C17&sort=BEST&cabinClass=ECONOMY&currency_code=AED",
+    // 💡 機場與幣別(TWD)皆已動態模組化
+	CURLOPT_URL => "https://booking-com15.p.rapidapi.com/api/v1/flights/searchFlights?fromId={$from}&toId={$to}&stops=none&pageNo=1&adults=1&children=0%2C17&sort=BEST&cabinClass=ECONOMY&currency_code=TWD",
 	CURLOPT_RETURNTRANSFER => true,
 	CURLOPT_ENCODING => "",
 	CURLOPT_MAXREDIRS => 10,
@@ -23,18 +30,7 @@ $err = curl_error($curl);
 curl_close($curl);
 
 if ($err) {
-	echo "cURL Error #:" . $err;
-} else {
-	echo $response;
-}
-// ...前面是 cURL 抓取資料的程式碼...
-curl_close($curl);
-
-if ($err) {
     echo json_encode(["status" => "error", "message" => $err]);
 } else {
-    // 設定 HTTP Header 告訴瀏覽器這是 JSON 資料
-    header('Content-Type: application/json; charset=utf-8');
-    // 直接輸出從 Booking API 拿到的 JSON 字串
     echo $response; 
 }

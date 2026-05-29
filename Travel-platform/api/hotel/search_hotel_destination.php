@@ -1,9 +1,14 @@
 <?php
+header("Access-Control-Allow-Origin: *");
+header('Content-Type: application/json; charset=utf-8');
+
+// 動態接收前端的搜尋關鍵字（例如：東京、Taipei），沒傳預設為高雄
+$query = isset($_GET['query']) ? urlencode($_GET['query']) : urlencode('高雄');
 
 $curl = curl_init();
 
 curl_setopt_array($curl, [
-	CURLOPT_URL => "https://booking-com15.p.rapidapi.com/api/v1/hotels/searchDestination?query=man",
+	CURLOPT_URL => "https://booking-com15.p.rapidapi.com/api/v1/hotels/searchDestination?query={$query}",
 	CURLOPT_RETURNTRANSFER => true,
 	CURLOPT_ENCODING => "",
 	CURLOPT_MAXREDIRS => 10,
@@ -23,17 +28,7 @@ $err = curl_error($curl);
 curl_close($curl);
 
 if ($err) {
-	echo "cURL Error #:" . $err;
-} else {
-	echo $response;
-}
-curl_close($curl);
-
-if ($err) {
     echo json_encode(["status" => "error", "message" => $err]);
 } else {
-    // 設定 HTTP Header 告訴瀏覽器這是 JSON 資料
-    header('Content-Type: application/json; charset=utf-8');
-    // 直接輸出從 Booking API 拿到的 JSON 字串
     echo $response; 
 }
