@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                 Int               @id @default(autoincrement())
+  email              String            @unique
+  password           String
+  name               String?
+  avatarUrl          String?
+  role               String            @default("traveler")
+  createdAt          DateTime          @default(now())
+  trips              Trip[]
+  participations     TripParticipation[]
+  reviews            Review[]
+  tripFavorites      FavoriteTrip[]
+  favoritePlanners   FavoritePlanner[] @relation("TravelerFavoritePlanners")
+  favoredByTravelers FavoritePlanner[] @relation("PlannerFavoriteFollowers")
+}
+
+model Trip {
+  id             Int                 @id @default(autoincrement())
+  title          String
+  coverImage     String?
+  summary        String?
+  isPublished    Boolean             @default(false)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  authorId       Int
+  author         User                @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  averageRating  Float?
+  reviewCount    Int                 @default(0)
+  participations TripParticipation[]
+  reviews        Review[]
+  favorites      FavoriteTrip[]
+}
+
+model TripParticipation {
+  id       Int      @id @default(autoincrement())
+  joinedAt DateTime @default(now())
+  status   String   @default("active")
+  userId   Int
+  tripId   Int
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trip     Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tripId])
+}
+
+model FavoriteTrip {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  userId    Int
+  tripId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tripId])
+}
+
+model FavoritePlanner {
+  id         Int      @id @default(autoincrement())
+  createdAt  DateTime @default(now())
+  travelerId Int
+  plannerId  Int
+  traveler   User     @relation("TravelerFavoritePlanners", fields: [travelerId], references: [id], onDelete: Cascade)
+  planner    User     @relation("PlannerFavoriteFollowers", fields: [plannerId], references: [id], onDelete: Cascade)
+
+  @@unique([travelerId, plannerId])
+}
+
+model Review {
+  id         Int      @id @default(autoincrement())
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  reviewerId Int
+  reviewer   User     @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+  tripId     Int
+  trip       Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewerId, tripId])
+}
